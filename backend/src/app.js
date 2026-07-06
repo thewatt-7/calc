@@ -35,11 +35,17 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-app.get("/api/health", (_req, res) => {
+const healthHandler = (_req, res) => {
     res.status(200).json({ ok: true });
-});
+};
 
+app.get("/health", healthHandler);
+app.get("/api/health", healthHandler);
+
+app.use("/notes", notesRoutes);
 app.use("/api/notes", notesRoutes);
+
+app.use("/valuations", valuationRoutes);
 app.use("/api/valuations", valuationRoutes);
 
 export default app;
