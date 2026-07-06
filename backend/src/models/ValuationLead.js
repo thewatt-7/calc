@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const valuationLeadSchema = new mongoose.Schema({
+    businessName: {
+        type: String,
+        required: true,
+        trim: true,
+    },
     businessType: {
         type: String,
         required: true,
@@ -11,41 +16,85 @@ const valuationLeadSchema = new mongoose.Schema({
         required: true,
         min: 0,
     },
-    annualProfit: {
+    netIncome: {
         type: Number,
         required: true,
-        min: 0,
     },
     yearsOperating: {
         type: Number,
         required: true,
         min: 0,
     },
-    ownerHours: {
+    ownerInvolvement: {
         type: String,
         required: true,
         trim: true,
+    },
+    employees: {
+        type: Number,
+        required: true,
+        min: 0,
     },
     revenueTrend: {
         type: String,
         required: true,
         trim: true,
     },
-    assets: {
+    ownsRealEstate: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    ownerSalary: {
         type: Number,
-        default: 0,
+        required: true,
+        min: 0,
+    },
+    healthInsurance: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    retirementContributions: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    depreciation: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    amortization: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    interestExpense: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    personalExpenses: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    oneTimeExpenses: {
+        type: Number,
+        required: true,
         min: 0,
     },
     name: {
         type: String,
+        required: true,
         trim: true,
-        default: "",
     },
     email: {
         type: String,
+        required: true,
         trim: true,
         lowercase: true,
-        default: "",
     },
     valuationLow: {
         type: Number,
@@ -66,6 +115,29 @@ const valuationLeadSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0,
+    },
+    valuationSde: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    valuationAdjustments: {
+        years: {
+            type: Number,
+            default: 0,
+        },
+        revenueTrend: {
+            type: Number,
+            default: 0,
+        },
+        ownerInvolvement: {
+            type: Number,
+            default: 0,
+        },
+        employees: {
+            type: Number,
+            default: 0,
+        },
     },
 }, { timestamps: true });
 

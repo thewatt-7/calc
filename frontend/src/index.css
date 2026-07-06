@@ -201,8 +201,31 @@ label {
   gap: 8px;
 }
 
-label.wide {
+.wide {
   grid-column: 1 / -1;
+}
+
+.form-section {
+  padding-top: 10px;
+}
+
+.form-section:not(:first-child) {
+  margin-top: 10px;
+  border-top: 1.5px solid #ece9e1;
+  padding-top: 22px;
+}
+
+.form-section h2 {
+  font-size: 20px;
+}
+
+.section-kicker {
+  margin-bottom: 6px;
+  color: #2ec4b6;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 label span {
@@ -237,6 +260,38 @@ small {
   color: #c2410c;
   font-size: 12px;
   font-weight: 600;
+}
+
+.field-note {
+  color: #6b7280;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.sde-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1.5px solid rgba(46, 196, 182, 0.28);
+  border-radius: 12px;
+  background: rgba(46, 196, 182, 0.08);
+  padding: 18px;
+}
+
+.sde-preview span {
+  color: #178f85;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sde-preview strong {
+  color: #1a1a2e;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 900;
+  line-height: 1;
 }
 
 .form-status {
@@ -400,8 +455,13 @@ small {
     grid-template-columns: 1fr;
   }
 
-  label.wide {
+  .wide {
     grid-column: auto;
+  }
+
+  .sde-preview {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .calculator-panel,

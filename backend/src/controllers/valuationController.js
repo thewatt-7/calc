@@ -1,40 +1,101 @@
 import ValuationLead from "../models/ValuationLead.js";
+import { appendValuationLeadToSheet } from "../services/googleSheetsService.js";
 
 const toNumber = (value) => Number(value || 0);
+const hasValue = (value) => value !== undefined && value !== null && String(value).trim() !== "";
 
 export async function createValuationLead(req, res) {
     try {
         const {
+            businessName,
             businessType,
             annualRevenue,
-            annualProfit,
+            netIncome,
             yearsOperating,
-            ownerHours,
+            ownerInvolvement,
+            employees,
             revenueTrend,
-            assets,
+            ownsRealEstate,
+            ownerSalary,
+            healthInsurance,
+            retirementContributions,
+            depreciation,
+            amortization,
+            interestExpense,
+            personalExpenses,
+            oneTimeExpenses,
             name,
             email,
             valuation,
         } = req.body;
 
-        if (!businessType || !ownerHours || !revenueTrend || !valuation) {
-            return res.status(400).json({ message: "Missing required valuation information" });
+        const requiredValues = {
+            businessName,
+            businessType,
+            annualRevenue,
+            netIncome,
+            yearsOperating,
+            ownerInvolvement,
+            employees,
+            revenueTrend,
+            ownsRealEstate,
+            ownerSalary,
+            healthInsurance,
+            retirementContributions,
+            depreciation,
+            amortization,
+            interestExpense,
+            personalExpenses,
+            oneTimeExpenses,
+            name,
+            email,
+        };
+        const missingFields = Object.entries(requiredValues)
+            .filter(([, value]) => !hasValue(value))
+            .map(([field]) => field);
+
+        if (missingFields.length || !valuation) {
+            return res.status(400).json({
+                message: "Missing required valuation information",
+                missingFields: !valuation ? [...missingFields, "valuation"] : missingFields,
+            });
         }
 
         const lead = await ValuationLead.create({
+            businessName,
             businessType,
             annualRevenue: toNumber(annualRevenue),
-            annualProfit: toNumber(annualProfit),
+            netIncome: toNumber(netIncome),
             yearsOperating: toNumber(yearsOperating),
-            ownerHours,
+            ownerInvolvement,
+            employees: toNumber(employees),
             revenueTrend,
-            assets: toNumber(assets),
+            ownsRealEstate,
+            ownerSalary: toNumber(ownerSalary),
+            healthInsurance: toNumber(healthInsurance),
+            retirementContributions: toNumber(retirementContributions),
+            depreciation: toNumber(depreciation),
+            amortization: toNumber(amortization),
+            interestExpense: toNumber(interestExpense),
+            personalExpenses: toNumber(personalExpenses),
+            oneTimeExpenses: toNumber(oneTimeExpenses),
             name,
             email,
             valuationLow: toNumber(valuation.low),
             valuationHigh: toNumber(valuation.high),
             valuationMidpoint: toNumber(valuation.midpoint),
             valuationMultiple: toNumber(valuation.multiple),
+            valuationSde: toNumber(valuation.sde),
+            valuationAdjustments: {
+                years: toNumber(valuation.adjustments?.years),
+                revenueTrend: toNumber(valuation.adjustments?.revenueTrend),
+                ownerInvolvement: toNumber(valuation.adjustments?.ownerInvolvement),
+                employees: toNumber(valuation.adjustments?.employees),
+            },
+        });
+
+        appendValuationLeadToSheet(lead).catch((error) => {
+            console.error("Failed to append valuation lead to Google Sheets", error);
         });
 
         return res.status(201).json({
