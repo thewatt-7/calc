@@ -1,29 +1,41 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 const API_BASE_URL = (
-  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5001' : '')
+  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? import.meta.env.VITE_DEV_API_URL || 'http://localhost:5001' : '')
 ).replace(/\/$/, '')
 
 const businessTypes = [
-  { value: 'restaurant', label: 'Restaurant', multiple: 2.1 },
-  { value: 'service', label: 'Service Business', multiple: 2.8 },
-  { value: 'retail', label: 'Retail Store', multiple: 2.2 },
-  { value: 'ecommerce', label: 'E-commerce', multiple: 3.1 },
-  { value: 'manufacturing', label: 'Manufacturing', multiple: 3.3 },
-  { value: 'professional', label: 'Professional Practice', multiple: 3.0 },
+  { value: 'restaurant', label: 'Restaurant', baseMultiple: 2.1 },
+  { value: 'service', label: 'Service Business', baseMultiple: 2.8 },
+  { value: 'retail', label: 'Retail Store', baseMultiple: 2.2 },
+  { value: 'ecommerce', label: 'E-commerce', baseMultiple: 3.1 },
+  { value: 'manufacturing', label: 'Manufacturing', baseMultiple: 3.3 },
+  { value: 'professional', label: 'Professional Practice', baseMultiple: 3.0 },
 ]
 
 const initialForm = {
+  businessName: '',
   businessType: 'service',
-  annualRevenue: '',
-  annualProfit: '',
   yearsOperating: '',
-  ownerHours: 'full',
+  ownerInvolvement: 'full',
+  employees: '',
   revenueTrend: 'stable',
-  assets: '',
+  ownsRealEstate: 'no',
+  annualRevenue: '',
+  netIncome: '',
+  ownerSalary: '',
+  healthInsurance: '',
+  retirementContributions: '',
+  depreciation: '',
+  amortization: '',
+  interestExpense: '',
+  personalExpenses: '',
+  oneTimeExpenses: '',
   name: '',
   email: '',
 }
+
+const requiredFields = Object.keys(initialForm)
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -35,60 +47,93 @@ const numberValue = (value) => Number(value || 0)
 
 function getValuation(form) {
   const type = businessTypes.find((item) => item.value === form.businessType) || businessTypes[0]
-  const revenue = numberValue(form.annualRevenue)
-  const profit = numberValue(form.annualProfit)
   const years = numberValue(form.yearsOperating)
-  const assets = numberValue(form.assets)
+  const employees = numberValue(form.employees)
+  const sde =
+    numberValue(form.netIncome) +
+    numberValue(form.ownerSalary) +
+    numberValue(form.healthInsurance) +
+    numberValue(form.retirementContributions) +
+    numberValue(form.depreciation) +
+    numberValue(form.amortization) +
+    numberValue(form.interestExpense) +
+    numberValue(form.personalExpenses) +
+    numberValue(form.oneTimeExpenses)
 
-  const trendFactor = {
-    declining: 0.82,
-    stable: 1,
-    growing: 1.18,
-    fast: 1.34,
+  const yearsAdjustment = years <= 2 ? -0.2 : years <= 5 ? 0 : years <= 10 ? 0.1 : 0.2
+
+  const trendAdjustment = {
+    growing: 0.15,
+    stable: 0,
+    declining: -0.15,
   }[form.revenueTrend]
 
-  const ownerFactor = {
-    full: 0.88,
-    part: 1,
-    manager: 1.14,
-  }[form.ownerHours]
+  const ownerAdjustment = {
+    absentee: 0.2,
+    part: 0.1,
+    full: 0,
+  }[form.ownerInvolvement]
 
-  const historyFactor = years >= 10 ? 1.12 : years >= 5 ? 1.04 : years >= 2 ? 0.96 : 0.82
-  const profitValuation = profit * type.multiple * trendFactor * ownerFactor * historyFactor
-  const revenueFloor = revenue * 0.22
-  const assetSupport = assets * 0.55
-  const midpoint = Math.max(profitValuation + assetSupport, revenueFloor + assetSupport)
-  const low = midpoint * 0.86
-  const high = midpoint * 1.16
+  const employeeAdjustment = employees <= 2 ? -0.1 : employees <= 10 ? 0 : 0.1
+  const finalMultiple = Math.max(
+    0,
+    type.baseMultiple + yearsAdjustment + trendAdjustment + ownerAdjustment + employeeAdjustment,
+  )
+  const estimatedValue = Math.max(0, sde * finalMultiple)
+  const low = estimatedValue * 0.9
+  const high = estimatedValue * 1.1
 
   return {
     type,
+    sde,
     low,
     high,
-    midpoint,
-    multiple: type.multiple * trendFactor * ownerFactor * historyFactor,
+    midpoint: estimatedValue,
+    multiple: finalMultiple,
+    adjustments: {
+      years: yearsAdjustment,
+      revenueTrend: trendAdjustment,
+      ownerInvolvement: ownerAdjustment,
+      employees: employeeAdjustment,
+    },
   }
 }
 
 export default function App() {
+  const formRef = useRef(null)
   const [form, setForm] = useState(initialForm)
   const [screen, setScreen] = useState('calculator')
   const [submitted, setSubmitted] = useState(false)
   const [saveStatus, setSaveStatus] = useState('idle')
 
   const valuation = useMemo(() => getValuation(form), [form])
-  const canCalculate = form.annualRevenue && form.annualProfit && form.yearsOperating
+  const isFieldMissing = (fieldName) => String(form[fieldName] ?? '').trim() === ''
+  const firstMissingField = requiredFields.find(isFieldMissing)
+  const canCalculate = !firstMissingField
+  const showRequiredError = (fieldName) => submitted && isFieldMissing(fieldName)
 
   const updateForm = (event) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
   }
 
+  const focusField = (fieldName) => {
+    const field = formRef.current?.elements.namedItem(fieldName)
+
+    if (!field) return
+
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    field.focus({ preventScroll: true })
+  }
+
   const handleCalculate = async (event) => {
     event.preventDefault()
     setSubmitted(true)
     setSaveStatus('idle')
-    if (!canCalculate) return
+    if (!canCalculate) {
+      focusField(firstMissingField)
+      return
+    }
 
     setSaveStatus('saving')
 
@@ -105,17 +150,22 @@ export default function App() {
             high: valuation.high,
             midpoint: valuation.midpoint,
             multiple: valuation.multiple,
+            sde: valuation.sde,
+            adjustments: valuation.adjustments,
           },
         }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to save valuation lead')
+        const errorDetails = await response.json().catch(() => null)
+        throw new Error(errorDetails?.message || 'Failed to save valuation lead', {
+          cause: errorDetails,
+        })
       }
 
       setSaveStatus('saved')
     } catch (error) {
-      console.error(error)
+      console.error('Failed to save valuation lead', error.cause || error)
       setSaveStatus('error')
     }
 
@@ -149,16 +199,87 @@ export default function App() {
               </p>
             </div>
 
-            <form className="calculator-panel fu1" onSubmit={handleCalculate}>
+            <form className="calculator-panel fu1" noValidate onSubmit={handleCalculate} ref={formRef}>
               <div className="form-grid">
+                <div className="form-section wide">
+                  <p className="section-kicker">Step 1</p>
+                  <h2>Business Information</h2>
+                </div>
+
                 <label>
-                  <span>Business type</span>
-                  <select name="businessType" value={form.businessType} onChange={updateForm}>
+                  <span>Business name</span>
+                  <input name="businessName" onChange={updateForm} placeholder="Main Street Cafe" required type="text" value={form.businessName} />
+                  {showRequiredError('businessName') && <small>Business name is required.</small>}
+                </label>
+
+                <label>
+                  <span>Industry</span>
+                  <select name="businessType" required value={form.businessType} onChange={updateForm}>
                     {businessTypes.map((type) => (
                       <option key={type.value} value={type.value}>{type.label}</option>
                     ))}
                   </select>
                 </label>
+
+                <label>
+                  <span>Years in business</span>
+                  <input
+                    min="0"
+                    name="yearsOperating"
+                    onChange={updateForm}
+                    placeholder="6"
+                    required
+                    type="number"
+                    value={form.yearsOperating}
+                  />
+                  {showRequiredError('yearsOperating') && <small>Years in business is required.</small>}
+                </label>
+
+                <label>
+                  <span>Owner involvement</span>
+                  <select name="ownerInvolvement" required value={form.ownerInvolvement} onChange={updateForm}>
+                    <option value="full">Full-Time Owner</option>
+                    <option value="part">Part-Time Owner</option>
+                    <option value="absentee">Absentee Owner</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Number of employees</span>
+                  <input
+                    min="0"
+                    name="employees"
+                    onChange={updateForm}
+                    placeholder="8"
+                    required
+                    type="number"
+                    value={form.employees}
+                  />
+                  {showRequiredError('employees') && <small>Number of employees is required.</small>}
+                </label>
+
+                <label>
+                  <span>Revenue trend</span>
+                  <select name="revenueTrend" required value={form.revenueTrend} onChange={updateForm}>
+                    <option value="growing">Growing</option>
+                    <option value="stable">Stable</option>
+                    <option value="declining">Declining</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Owns real estate?</span>
+                  <select name="ownsRealEstate" required value={form.ownsRealEstate} onChange={updateForm}>
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                  </select>
+                  <small className="field-note">Real estate is valued separately and is NOT included in this estimate.</small>
+                </label>
+
+                <div className="form-section wide">
+                  <p className="section-kicker">Step 2</p>
+                  <h2>Financial Information</h2>
+                </div>
 
                 <label>
                   <span>Annual revenue</span>
@@ -167,77 +288,101 @@ export default function App() {
                     name="annualRevenue"
                     onChange={updateForm}
                     placeholder="650000"
+                    required
                     type="number"
                     value={form.annualRevenue}
                   />
-                  {submitted && !form.annualRevenue && <small>Revenue is required.</small>}
+                  {showRequiredError('annualRevenue') && <small>Revenue is required.</small>}
                 </label>
 
                 <label>
-                  <span>Annual seller earnings</span>
+                  <span>Net income</span>
                   <input
-                    min="0"
-                    name="annualProfit"
+                    name="netIncome"
                     onChange={updateForm}
-                    placeholder="140000"
+                    placeholder="95000"
+                    required
                     type="number"
-                    value={form.annualProfit}
+                    value={form.netIncome}
                   />
-                  {submitted && !form.annualProfit && <small>Seller earnings are required.</small>}
+                  <small className="field-note">Use the Net Income (bottom line) from your most recent Profit &amp; Loss Statement.</small>
+                  {showRequiredError('netIncome') && <small>Net income is required.</small>}
+                </label>
+
+                <div className="form-section wide">
+                  <p className="section-kicker">Step 3</p>
+                  <h2>Owner Add-Backs</h2>
+                </div>
+
+                <label>
+                  <span>Owner salary &amp; payroll taxes</span>
+                  <input min="0" name="ownerSalary" onChange={updateForm} placeholder="65000" required type="number" value={form.ownerSalary} />
+                  {showRequiredError('ownerSalary') && <small>Enter a value or 0 if this does not apply.</small>}
                 </label>
 
                 <label>
-                  <span>Years operating</span>
-                  <input
-                    min="0"
-                    name="yearsOperating"
-                    onChange={updateForm}
-                    placeholder="6"
-                    type="number"
-                    value={form.yearsOperating}
-                  />
-                  {submitted && !form.yearsOperating && <small>Years operating is required.</small>}
+                  <span>Health insurance</span>
+                  <input min="0" name="healthInsurance" onChange={updateForm} placeholder="12000" required type="number" value={form.healthInsurance} />
+                  {showRequiredError('healthInsurance') && <small>Enter a value or 0 if this does not apply.</small>}
                 </label>
 
                 <label>
-                  <span>Owner involvement</span>
-                  <select name="ownerHours" value={form.ownerHours} onChange={updateForm}>
-                    <option value="full">Owner runs daily operations</option>
-                    <option value="part">Owner works part time</option>
-                    <option value="manager">Manager-led operations</option>
-                  </select>
+                  <span>Retirement contributions</span>
+                  <input min="0" name="retirementContributions" onChange={updateForm} placeholder="8000" required type="number" value={form.retirementContributions} />
+                  {showRequiredError('retirementContributions') && <small>Enter a value or 0 if this does not apply.</small>}
                 </label>
 
                 <label>
-                  <span>Revenue trend</span>
-                  <select name="revenueTrend" value={form.revenueTrend} onChange={updateForm}>
-                    <option value="declining">Declining</option>
-                    <option value="stable">Stable</option>
-                    <option value="growing">Growing</option>
-                    <option value="fast">Growing quickly</option>
-                  </select>
+                  <span>Depreciation</span>
+                  <input min="0" name="depreciation" onChange={updateForm} placeholder="10000" required type="number" value={form.depreciation} />
+                  {showRequiredError('depreciation') && <small>Enter a value or 0 if this does not apply.</small>}
                 </label>
 
                 <label>
-                  <span>Approximate assets</span>
-                  <input
-                    min="0"
-                    name="assets"
-                    onChange={updateForm}
-                    placeholder="50000"
-                    type="number"
-                    value={form.assets}
-                  />
+                  <span>Amortization</span>
+                  <input min="0" name="amortization" onChange={updateForm} placeholder="3000" required type="number" value={form.amortization} />
+                  {showRequiredError('amortization') && <small>Enter a value or 0 if this does not apply.</small>}
                 </label>
+
+                <label>
+                  <span>Interest expense</span>
+                  <input min="0" name="interestExpense" onChange={updateForm} placeholder="7000" required type="number" value={form.interestExpense} />
+                  {showRequiredError('interestExpense') && <small>Enter a value or 0 if this does not apply.</small>}
+                </label>
+
+                <label>
+                  <span>Personal expenses paid by business</span>
+                  <input min="0" name="personalExpenses" onChange={updateForm} placeholder="15000" required type="number" value={form.personalExpenses} />
+                  {showRequiredError('personalExpenses') && <small>Enter a value or 0 if this does not apply.</small>}
+                </label>
+
+                <label>
+                  <span>One-time / non-recurring expenses</span>
+                  <input min="0" name="oneTimeExpenses" onChange={updateForm} placeholder="5000" required type="number" value={form.oneTimeExpenses} />
+                  <small className="field-note">Examples: legal fees, equipment repairs, accounting fees, personal vehicle, cell phone, or travel.</small>
+                  {showRequiredError('oneTimeExpenses') && <small>Enter a value or 0 if this does not apply.</small>}
+                </label>
+
+                <div className="sde-preview wide">
+                  <span>Calculated SDE</span>
+                  <strong>{currencyFormatter.format(valuation.sde)}</strong>
+                </div>
+
+                <div className="form-section wide">
+                  <p className="section-kicker">Contact</p>
+                  <h2>Where should the estimate go?</h2>
+                </div>
 
                 <label>
                   <span>Your name</span>
-                  <input name="name" onChange={updateForm} placeholder="Alex Smith" type="text" value={form.name} />
+                  <input name="name" onChange={updateForm} placeholder="Alex Smith" required type="text" value={form.name} />
+                  {showRequiredError('name') && <small>Your name is required.</small>}
                 </label>
 
                 <label className="wide">
                   <span>Email</span>
-                  <input name="email" onChange={updateForm} placeholder="alex@example.com" type="email" value={form.email} />
+                  <input name="email" onChange={updateForm} placeholder="alex@example.com" required type="email" value={form.email} />
+                  {showRequiredError('email') && <small>Email is required.</small>}
                 </label>
               </div>
 
@@ -257,22 +402,40 @@ export default function App() {
               <p className="eyebrow">Estimated valuation range</p>
               <h1>{currencyFormatter.format(valuation.low)} - {currencyFormatter.format(valuation.high)}</h1>
               <p>
-                This estimate is based on a blended range for a {valuation.type.label.toLowerCase()} using your earnings,
-                revenue, operating history, asset support, and current trend.
+                This estimate uses Seller&apos;s Discretionary Earnings multiplied by an adjusted industry multiple for a{' '}
+                {valuation.type.label.toLowerCase()}.
               </p>
             </div>
 
             <div className="result-grid fu1">
               <article className="valuation-card featured">
-                <span>Likely midpoint</span>
+                <span>Estimated business value</span>
                 <strong>{currencyFormatter.format(valuation.midpoint)}</strong>
-                <p>Approximate adjusted multiple: {valuation.multiple.toFixed(1)}x seller earnings.</p>
+                <p>The displayed range is 10% below and above this estimate.</p>
+              </article>
+
+              <article className="valuation-card">
+                <span>Calculated SDE</span>
+                <strong>{currencyFormatter.format(valuation.sde)}</strong>
+                <p>Net income plus owner add-backs entered in the calculator.</p>
+              </article>
+
+              <article className="valuation-card">
+                <span>Final multiple used</span>
+                <strong>{valuation.multiple.toFixed(2)}x</strong>
+                <p>Base industry multiple adjusted for years, trend, owner involvement, and employee count.</p>
               </article>
 
               <article className="valuation-card">
                 <span>Business type</span>
                 <strong>{valuation.type.label}</strong>
-                <p>Different industries attract different buyer pools and financing expectations.</p>
+                <p>Base multiple: {valuation.type.baseMultiple.toFixed(2)}x before quality adjustments.</p>
+              </article>
+
+              <article className="valuation-card">
+                <span>Real estate</span>
+                <strong>{form.ownsRealEstate === 'yes' ? 'Excluded' : 'Not included'}</strong>
+                <p>Real estate is valued separately and is NOT included in this estimate.</p>
               </article>
 
               <article className="valuation-card">
