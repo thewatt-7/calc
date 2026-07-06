@@ -300,11 +300,6 @@ export default function App() {
             </div>
 
             <p className="disclaimer fu3">
-              {saveStatus === 'error' && (
-                <span className="save-warning">
-                  Your estimate displayed, but it could not be saved to the database. Check that the backend server is running.
-                </span>
-              )}
               This calculator is for educational purposes only and is not a formal appraisal, financial advice, or a
               guaranteed sale price.
             </p>

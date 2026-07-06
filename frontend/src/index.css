@@ -382,13 +382,6 @@ small {
   font-size: 12px;
 }
 
-.save-warning {
-  display: block;
-  margin-bottom: 10px;
-  color: #c2410c;
-  font-weight: 700;
-}
-
 @media (max-width: 760px) {
   .nav {
     justify-content: flex-start;
