@@ -94,9 +94,11 @@ export async function createValuationLead(req, res) {
             },
         });
 
-        appendValuationLeadToSheet(lead).catch((error) => {
+        try {
+            await appendValuationLeadToSheet(lead);
+        } catch (error) {
             console.error("Failed to append valuation lead to Google Sheets", error);
-        });
+        }
 
         return res.status(201).json({
             message: "Valuation lead saved successfully",

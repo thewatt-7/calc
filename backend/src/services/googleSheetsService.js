@@ -37,6 +37,7 @@ export async function appendValuationLeadToSheet(lead) {
     const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
 
     if (!webhookUrl) {
+        console.warn("Skipping Google Sheets append because GOOGLE_SHEETS_WEBHOOK_URL is not set.");
         return;
     }
 

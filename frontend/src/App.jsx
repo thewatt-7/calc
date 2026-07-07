@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL || (import.meta.env.DEV ? import.meta.env.VITE_DEV_API_URL || 'http://localhost:5001' : '')
@@ -44,6 +44,15 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 })
 
 const numberValue = (value) => Number(value || 0)
+
+function Disclaimer({ className = '' }) {
+  return (
+    <p className={`disclaimer ${className}`.trim()}>
+      This calculator is for educational purposes only and is not a formal appraisal, financial advice, or a
+      guaranteed sale price.
+    </p>
+  )
+}
 
 function getValuation(form) {
   const type = businessTypes.find((item) => item.value === form.businessType) || businessTypes[0]
@@ -112,6 +121,10 @@ export default function App() {
   const canCalculate = !firstMissingField
   const showRequiredError = (fieldName) => submitted && isFieldMissing(fieldName)
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [screen])
+
   const updateForm = (event) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
@@ -170,12 +183,16 @@ export default function App() {
     }
 
     setScreen('results')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const resetCalculator = () => {
     setScreen('calculator')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const clearForm = () => {
+    setForm(initialForm)
+    setSubmitted(false)
+    setSaveStatus('idle')
   }
 
   return (
@@ -370,7 +387,7 @@ export default function App() {
 
                 <div className="form-section wide">
                   <p className="section-kicker">Contact</p>
-                  <h2>Where should the estimate go?</h2>
+                  <h2>Your contact information</h2>
                 </div>
 
                 <label>
@@ -386,11 +403,18 @@ export default function App() {
                 </label>
               </div>
 
-              <button className="primary-btn" disabled={saveStatus === 'saving'} type="submit">
-                {saveStatus === 'saving' ? 'Saving Estimate' : 'Calculate Estimate'}
-              </button>
+              <div className="form-actions">
+                <button className="primary-btn" disabled={saveStatus === 'saving'} type="submit">
+                  {saveStatus === 'saving' ? 'Saving Estimate' : 'Calculate Estimate'}
+                </button>
+                <button className="secondary-btn" disabled={saveStatus === 'saving'} onClick={clearForm} type="button">
+                  Clear Form
+                </button>
+              </div>
               {saveStatus === 'saving' && <p className="form-status">Saving your estimate...</p>}
             </form>
+
+            <Disclaimer className="fu2" />
           </section>
         )}
 
@@ -462,10 +486,7 @@ export default function App() {
               </div>
             </div>
 
-            <p className="disclaimer fu3">
-              This calculator is for educational purposes only and is not a formal appraisal, financial advice, or a
-              guaranteed sale price.
-            </p>
+            <Disclaimer className="fu3" />
           </section>
         )}
       </main>

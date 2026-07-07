@@ -301,6 +301,13 @@ small {
   font-weight: 600;
 }
 
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
 .primary-btn,
 .secondary-btn {
   display: inline-flex;
@@ -318,7 +325,6 @@ small {
 }
 
 .primary-btn {
-  margin-top: 22px;
   border: 0;
   background: #1a1a2e;
   color: #f7f6f2;
@@ -342,6 +348,14 @@ small {
   border: 1.5px solid #ece9e1;
   background: #fff;
   color: #1a1a2e;
+  cursor: pointer;
+}
+
+.secondary-btn:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+  box-shadow: none;
 }
 
 .secondary-btn:hover {
@@ -477,5 +491,10 @@ small {
 
   .contact-actions {
     min-width: 0;
+  }
+
+  .form-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
