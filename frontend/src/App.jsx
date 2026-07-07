@@ -44,6 +44,7 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 })
 
 const numberValue = (value) => Number(value || 0)
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim())
 
 function Disclaimer({ className = '' }) {
   return (
@@ -120,6 +121,7 @@ export default function App() {
   const firstMissingField = requiredFields.find(isFieldMissing)
   const canCalculate = !firstMissingField
   const showRequiredError = (fieldName) => submitted && isFieldMissing(fieldName)
+  const showEmailFormatError = submitted && !isFieldMissing('email') && !isValidEmail(form.email)
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
@@ -145,6 +147,11 @@ export default function App() {
     setSaveStatus('idle')
     if (!canCalculate) {
       focusField(firstMissingField)
+      return
+    }
+
+    if (!isValidEmail(form.email)) {
+      focusField('email')
       return
     }
 
@@ -400,6 +407,7 @@ export default function App() {
                   <span>Email</span>
                   <input name="email" onChange={updateForm} placeholder="alex@example.com" required type="email" value={form.email} />
                   {showRequiredError('email') && <small>Email is required.</small>}
+                  {showEmailFormatError && <small>Enter a valid email address.</small>}
                 </label>
               </div>
 
