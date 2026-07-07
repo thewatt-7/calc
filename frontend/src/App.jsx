@@ -45,6 +45,8 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 
 const numberValue = (value) => Number(value || 0)
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim())
+const calculatorPath = '/'
+const resultsPath = '/results'
 
 function Disclaimer({ className = '' }) {
   return (
@@ -119,9 +121,23 @@ export default function App() {
   const valuation = useMemo(() => getValuation(form), [form])
   const isFieldMissing = (fieldName) => String(form[fieldName] ?? '').trim() === ''
   const firstMissingField = requiredFields.find(isFieldMissing)
-  const canCalculate = !firstMissingField
   const showRequiredError = (fieldName) => submitted && isFieldMissing(fieldName)
   const showEmailFormatError = submitted && !isFieldMissing('email') && !isValidEmail(form.email)
+
+  useEffect(() => {
+    window.history.replaceState({ screen: 'calculator' }, '', calculatorPath)
+
+    const handlePopState = (event) => {
+      setSaveStatus('idle')
+      setScreen(event.state?.screen === 'results' ? 'results' : 'calculator')
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
@@ -144,14 +160,11 @@ export default function App() {
   const handleCalculate = async (event) => {
     event.preventDefault()
     setSubmitted(true)
-    setSaveStatus('idle')
-    if (!canCalculate) {
-      focusField(firstMissingField)
-      return
-    }
+    const invalidField = firstMissingField || (!isValidEmail(form.email) ? 'email' : null)
 
-    if (!isValidEmail(form.email)) {
-      focusField('email')
+    if (invalidField) {
+      setSaveStatus('idle')
+      focusField(invalidField)
       return
     }
 
@@ -189,10 +202,17 @@ export default function App() {
       setSaveStatus('error')
     }
 
+    window.history.pushState({ screen: 'results' }, '', resultsPath)
     setScreen('results')
   }
 
   const resetCalculator = () => {
+    if (screen === 'results' && window.history.state?.screen === 'results') {
+      window.history.back()
+      return
+    }
+
+    window.history.replaceState({ screen: 'calculator' }, '', calculatorPath)
     setScreen('calculator')
   }
 
@@ -413,13 +433,15 @@ export default function App() {
 
               <div className="form-actions">
                 <button className="primary-btn" disabled={saveStatus === 'saving'} type="submit">
-                  {saveStatus === 'saving' ? 'Saving Estimate' : 'Calculate Estimate'}
+                  {saveStatus === 'saving' ? 'Preparing Results' : 'Calculate Estimate'}
                 </button>
                 <button className="secondary-btn" disabled={saveStatus === 'saving'} onClick={clearForm} type="button">
                   Clear Form
                 </button>
               </div>
-              {saveStatus === 'saving' && <p className="form-status">Saving your estimate...</p>}
+              {saveStatus === 'saving' && (
+                <p className="form-status">Saving your estimate and preparing your valuation range. This usually takes a few seconds.</p>
+              )}
             </form>
 
             <Disclaimer className="fu2" />

@@ -1,4 +1,5 @@
 const toNumber = (value) => Number(value || 0);
+const SHEETS_TIMEOUT_MS = 5000;
 
 const getSheetPayload = (lead) => ({
     submittedAt: lead.createdAt,
@@ -41,12 +42,24 @@ export async function appendValuationLeadToSheet(lead) {
         return;
     }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SHEETS_TIMEOUT_MS);
+
     const response = await fetch(webhookUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(getSheetPayload(lead)),
+        signal: controller.signal,
+    }).catch((error) => {
+        if (error.name === "AbortError") {
+            throw new Error(`Google Sheets webhook timed out after ${SHEETS_TIMEOUT_MS / 1000} seconds`);
+        }
+
+        throw error;
+    }).finally(() => {
+        clearTimeout(timeout);
     });
     const responseText = await response.text();
 
