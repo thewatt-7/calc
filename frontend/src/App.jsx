@@ -115,11 +115,32 @@ export default function App() {
   const [screen, setScreen] = useState('calculator')
   const [submitted, setSubmitted] = useState(false)
   const [saveStatus, setSaveStatus] = useState('idle')
+  const [theme, setTheme] = useState(() => (
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  ))
 
   const valuation = useMemo(() => getValuation(form), [form])
   const isFieldMissing = (fieldName) => String(form[fieldName] ?? '').trim() === ''
   const firstMissingField = requiredFields.find(isFieldMissing)
   const showRequiredError = (fieldName) => submitted && isFieldMissing(fieldName)
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.documentElement.style.colorScheme = theme
+  }, [theme])
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const syncTheme = (event) => {
+      setTheme(event.matches ? 'dark' : 'light')
+    }
+
+    mediaQuery.addEventListener('change', syncTheme)
+
+    return () => {
+      mediaQuery.removeEventListener('change', syncTheme)
+    }
+  }, [])
 
   useEffect(() => {
     window.history.replaceState({ screen: 'calculator' }, '', calculatorPath)
@@ -222,10 +243,12 @@ export default function App() {
   return (
     <>
       <nav className="nav">
-        <button className="nav-logo" onClick={resetCalculator} type="button">
-          <span className="brand-mark">$</span>
-          <span className="nav-logo-text">Business Value Estimator</span>
-        </button>
+        <div className="nav-inner">
+          <button className="nav-logo" onClick={resetCalculator} type="button">
+            <span className="brand-mark">$</span>
+            <span className="nav-logo-text">Business Value Estimator</span>
+          </button>
+        </div>
       </nav>
 
       <main className="page">
