@@ -1,119 +1,53 @@
 # Google Sheets Lead Capture
 
-The backend can append each completed valuation lead to a Google Sheet through an Apps Script webhook.
+The backend appends valuation leads directly to Google Sheets with the official Google Sheets API. There is no Apps
+Script webhook in this setup.
 
-## 1. Create the Google Sheet
+## 1. Create The Sheet
 
-Create a sheet with a tab named `Leads`.
+Create a Google Sheet with a tab named `Leads`.
 
 Add this header row in row 1:
 
 ```text
-Submitted At,Lead ID,Business Name,Industry,Annual Revenue,Net Income,Years In Business,Owner Involvement,Employees,Revenue Trend,Owns Real Estate,Owner Salary,Health Insurance,Retirement Contributions,Depreciation,Amortization,Interest Expense,Personal Expenses,One-Time Expenses,Name,Email,Valuation Low,Valuation High,Estimated Business Value,Final Multiple,Calculated SDE,Years Adjustment,Revenue Trend Adjustment,Owner Involvement Adjustment,Employees Adjustment
+Submitted At,Lead ID,Business Name,Name,Industry,Annual Revenue,Net Income,Years In Business,Owner Involvement,Employees,Revenue Trend,Owns Real Estate,Owner Salary,Health Insurance,Retirement Contributions,Depreciation,Amortization,Interest Expense,Personal Expenses,One-Time Expenses,Email,Valuation Low,Valuation High,Estimated Business Value,Final Multiple,Calculated SDE,Years Adjustment,Revenue Trend Adjustment,Owner Involvement Adjustment,Employees Adjustment
 ```
 
-## 2. Add the Apps Script
+## 2. Create Google Credentials
 
-In Google Sheets, go to `Extensions > Apps Script` and paste this code:
+1. In Google Cloud, create or select a project.
+2. Enable the Google Sheets API for that project.
+3. Create a service account.
+4. Create a JSON key for the service account.
+5. Share the target Google Sheet with the service account email and give it Editor access.
 
-Paste only the code below. Do not paste the word `javascript` or any backticks into Apps Script.
+## 3. Configure The Backend
 
-```javascript
-const SHEET_NAME = 'Leads';
-
-function jsonResponse(data) {
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doGet() {
-  return jsonResponse({ ok: true, message: 'Business Value Estimator webhook is live.' });
-}
-
-function doPost(event) {
-  try {
-    const payload = JSON.parse(event.postData.contents);
-    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = spreadsheet.getSheetByName(SHEET_NAME);
-
-    if (!sheet) {
-      return jsonResponse({ ok: false, error: 'Missing sheet tab named Leads.' });
-    }
-
-    sheet.appendRow([
-      payload.submittedAt,
-      payload.leadId,
-      payload.businessName,
-      payload.businessType,
-      payload.annualRevenue,
-      payload.netIncome,
-      payload.yearsOperating,
-      payload.ownerInvolvement,
-      payload.employees,
-      payload.revenueTrend,
-      payload.ownsRealEstate,
-      payload.ownerSalary,
-      payload.healthInsurance,
-      payload.retirementContributions,
-      payload.depreciation,
-      payload.amortization,
-      payload.interestExpense,
-      payload.personalExpenses,
-      payload.oneTimeExpenses,
-      payload.name,
-      payload.email,
-      payload.valuationLow,
-      payload.valuationHigh,
-      payload.valuationMidpoint,
-      payload.valuationMultiple,
-      payload.valuationSde,
-      payload.yearsAdjustment,
-      payload.revenueTrendAdjustment,
-      payload.ownerInvolvementAdjustment,
-      payload.employeesAdjustment,
-    ]);
-
-    return jsonResponse({ ok: true });
-  } catch (error) {
-    return jsonResponse({ ok: false, error: error.message });
-  }
-}
-```
-
-## 3. Deploy the webhook
-
-1. Click `Deploy > New deployment`.
-2. Choose `Web app`.
-3. Set `Execute as` to `Me`.
-4. Set `Who has access` to `Anyone`.
-5. Deploy and copy the Web app URL ending in `/exec`.
-
-If you edit the script later, click `Deploy > Manage deployments`, edit the active deployment, choose a new version,
-and deploy again. Apps Script does not always run your latest code until you update the deployment version.
-
-## 4. Add the URL to the backend environment
-
-Set this in `backend/.env` and in your deployed backend environment:
+Set these env vars in `backend/.env` locally and in the deployed backend environment:
 
 ```text
-GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
+GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id
+GOOGLE_SHEETS_SHEET_NAME=Leads
+GOOGLE_SHEETS_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+GOOGLE_SHEETS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 ```
 
-If this environment variable is blank, leads still save to MongoDB but will not be sent to Google Sheets.
+The spreadsheet ID is the long ID in the Google Sheet URL:
+
+```text
+https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
+```
+
+For Vercel production, set these on the backend project and redeploy after changing them.
 
 ## Troubleshooting
 
-The backend expects the Apps Script to return JSON like this:
+Check backend logs after submitting a valuation:
 
-```json
-{"ok":true}
-```
-
-If the backend logs that the webhook returned HTML, Google is not running the `doPost` handler. Check that:
-
-- The URL is the deployed Web app URL ending in `/exec`, not the editor URL or `/dev` URL.
-- `Who has access` is set to `Anyone`.
-- The script was deployed from the Google Sheet through `Extensions > Apps Script`.
-- The deployment was updated after the latest script changes.
-- The sheet tab is named exactly `Leads`.
+- `Skipping Google Sheets append because these env vars are missing...` means production is missing one or more
+  required backend env vars.
+- `Google Sheets append completed...` means the row was added.
+- `The caller does not have permission` usually means the spreadsheet was not shared with the service account email.
+- `Unable to parse range` usually means `GOOGLE_SHEETS_SHEET_NAME` does not match the tab name exactly.
+- `invalid_grant` or private key errors usually mean `GOOGLE_SHEETS_PRIVATE_KEY` was pasted without preserving `\n`
+  newline escapes.

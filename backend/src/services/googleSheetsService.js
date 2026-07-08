@@ -1,81 +1,90 @@
-const toNumber = (value) => Number(value || 0);
-const SHEETS_TIMEOUT_MS = 5000;
+import { google } from "googleapis";
 
-const getSheetPayload = (lead) => ({
-    submittedAt: lead.createdAt,
-    leadId: lead._id.toString(),
-    businessName: lead.businessName,
-    businessType: lead.businessType,
-    annualRevenue: lead.annualRevenue,
-    netIncome: lead.netIncome,
-    yearsOperating: lead.yearsOperating,
-    ownerInvolvement: lead.ownerInvolvement,
-    employees: lead.employees,
-    revenueTrend: lead.revenueTrend,
-    ownsRealEstate: lead.ownsRealEstate,
-    ownerSalary: lead.ownerSalary,
-    healthInsurance: lead.healthInsurance,
-    retirementContributions: lead.retirementContributions,
-    depreciation: lead.depreciation,
-    amortization: lead.amortization,
-    interestExpense: lead.interestExpense,
-    personalExpenses: lead.personalExpenses,
-    oneTimeExpenses: lead.oneTimeExpenses,
-    name: lead.name,
-    email: lead.email,
-    valuationLow: lead.valuationLow,
-    valuationHigh: lead.valuationHigh,
-    valuationMidpoint: lead.valuationMidpoint,
-    valuationMultiple: lead.valuationMultiple,
-    valuationSde: lead.valuationSde,
-    yearsAdjustment: toNumber(lead.valuationAdjustments?.years),
-    revenueTrendAdjustment: toNumber(lead.valuationAdjustments?.revenueTrend),
-    ownerInvolvementAdjustment: toNumber(lead.valuationAdjustments?.ownerInvolvement),
-    employeesAdjustment: toNumber(lead.valuationAdjustments?.employees),
-});
+const toNumber = (value) => Number(value || 0);
+
+let sheetsClient = null;
+
+const requiredConfigKeys = [
+    "GOOGLE_SHEETS_SPREADSHEET_ID",
+    "GOOGLE_SHEETS_CLIENT_EMAIL",
+    "GOOGLE_SHEETS_PRIVATE_KEY",
+];
+
+const getMissingConfigKeys = () => requiredConfigKeys.filter((key) => !process.env[key]);
+
+const getSheetName = () => process.env.GOOGLE_SHEETS_SHEET_NAME || "Leads";
+
+const getPrivateKey = () => process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+const getSheetsClient = () => {
+    if (sheetsClient) {
+        return sheetsClient;
+    }
+
+    const auth = new google.auth.JWT({
+        email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
+        key: getPrivateKey(),
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    sheetsClient = google.sheets({ version: "v4", auth });
+    return sheetsClient;
+};
+
+const getSheetRange = () => {
+    const escapedSheetName = getSheetName().replace(/'/g, "''");
+    return `'${escapedSheetName}'!A1`;
+};
+
+const getSheetRow = (lead) => [
+    lead.createdAt,
+    lead._id.toString(),
+    lead.businessName,
+    lead.name,
+    lead.businessType,
+    lead.annualRevenue,
+    lead.netIncome,
+    lead.yearsOperating,
+    lead.ownerInvolvement,
+    lead.employees,
+    lead.revenueTrend,
+    lead.ownsRealEstate,
+    lead.ownerSalary,
+    lead.healthInsurance,
+    lead.retirementContributions,
+    lead.depreciation,
+    lead.amortization,
+    lead.interestExpense,
+    lead.personalExpenses,
+    lead.oneTimeExpenses,
+    lead.email,
+    lead.valuationLow,
+    lead.valuationHigh,
+    lead.valuationMidpoint,
+    lead.valuationMultiple,
+    lead.valuationSde,
+    toNumber(lead.valuationAdjustments?.years),
+    toNumber(lead.valuationAdjustments?.revenueTrend),
+    toNumber(lead.valuationAdjustments?.ownerInvolvement),
+    toNumber(lead.valuationAdjustments?.employees),
+];
 
 export async function appendValuationLeadToSheet(lead) {
-    const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+    const missingConfigKeys = getMissingConfigKeys();
 
-    if (!webhookUrl) {
-        console.warn("Skipping Google Sheets append because GOOGLE_SHEETS_WEBHOOK_URL is not set.");
+    if (missingConfigKeys.length) {
+        console.warn(`Skipping Google Sheets append because these env vars are missing: ${missingConfigKeys.join(", ")}`);
         return;
     }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), SHEETS_TIMEOUT_MS);
+    const sheets = getSheetsClient();
 
-    const response = await fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
+    await sheets.spreadsheets.values.append({
+        spreadsheetId: process.env.GOOGLE_SHEETS_SPREADSHEET_ID,
+        range: getSheetRange(),
+        valueInputOption: "USER_ENTERED",
+        requestBody: {
+            values: [getSheetRow(lead)],
         },
-        body: JSON.stringify(getSheetPayload(lead)),
-        signal: controller.signal,
-    }).catch((error) => {
-        if (error.name === "AbortError") {
-            throw new Error(`Google Sheets webhook timed out after ${SHEETS_TIMEOUT_MS / 1000} seconds`);
-        }
-
-        throw error;
-    }).finally(() => {
-        clearTimeout(timeout);
     });
-    const responseText = await response.text();
-
-    if (!response.ok) {
-        throw new Error(`Google Sheets webhook failed with status ${response.status}: ${responseText.slice(0, 300)}`);
-    }
-
-    let responseBody;
-
-    try {
-        responseBody = JSON.parse(responseText);
-    } catch {
-        throw new Error(`Google Sheets webhook returned non-JSON response: ${responseText.slice(0, 1500)}`);
-    }
-
-    if (!responseBody.ok) {
-        throw new Error(`Google Sheets webhook returned unsuccessful response: ${responseText.slice(0, 300)}`);
-    }
 }

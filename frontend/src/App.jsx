@@ -32,7 +32,6 @@ const initialForm = {
   personalExpenses: '',
   oneTimeExpenses: '',
   name: '',
-  email: '',
 }
 
 const requiredFields = Object.keys(initialForm)
@@ -44,7 +43,6 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 })
 
 const numberValue = (value) => Number(value || 0)
-const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim())
 const calculatorPath = '/'
 const resultsPath = '/results'
 
@@ -122,7 +120,6 @@ export default function App() {
   const isFieldMissing = (fieldName) => String(form[fieldName] ?? '').trim() === ''
   const firstMissingField = requiredFields.find(isFieldMissing)
   const showRequiredError = (fieldName) => submitted && isFieldMissing(fieldName)
-  const showEmailFormatError = submitted && !isFieldMissing('email') && !isValidEmail(form.email)
 
   useEffect(() => {
     window.history.replaceState({ screen: 'calculator' }, '', calculatorPath)
@@ -160,7 +157,7 @@ export default function App() {
   const handleCalculate = async (event) => {
     event.preventDefault()
     setSubmitted(true)
-    const invalidField = firstMissingField || (!isValidEmail(form.email) ? 'email' : null)
+    const invalidField = firstMissingField
 
     if (invalidField) {
       setSaveStatus('idle')
@@ -254,6 +251,12 @@ export default function App() {
                   <span>Business name</span>
                   <input name="businessName" onChange={updateForm} placeholder="Main Street Cafe" required type="text" value={form.businessName} />
                   {showRequiredError('businessName') && <small>Business name is required.</small>}
+                </label>
+
+                <label>
+                  <span>Your name</span>
+                  <input name="name" onChange={updateForm} placeholder="Alex Smith" required type="text" value={form.name} />
+                  {showRequiredError('name') && <small>Your name is required.</small>}
                 </label>
 
                 <label>
@@ -405,29 +408,6 @@ export default function App() {
                   <input min="0" name="oneTimeExpenses" onChange={updateForm} placeholder="5000" required type="number" value={form.oneTimeExpenses} />
                   <small className="field-note">Examples: legal fees, equipment repairs, accounting fees, personal vehicle, cell phone, or travel.</small>
                   {showRequiredError('oneTimeExpenses') && <small>Enter a value or 0 if this does not apply.</small>}
-                </label>
-
-                <div className="sde-preview wide">
-                  <span>Calculated SDE</span>
-                  <strong>{currencyFormatter.format(valuation.sde)}</strong>
-                </div>
-
-                <div className="form-section wide">
-                  <p className="section-kicker">Contact</p>
-                  <h2>Your contact information</h2>
-                </div>
-
-                <label>
-                  <span>Your name</span>
-                  <input name="name" onChange={updateForm} placeholder="Alex Smith" required type="text" value={form.name} />
-                  {showRequiredError('name') && <small>Your name is required.</small>}
-                </label>
-
-                <label className="wide">
-                  <span>Email</span>
-                  <input name="email" onChange={updateForm} placeholder="alex@example.com" required type="email" value={form.email} />
-                  {showRequiredError('email') && <small>Email is required.</small>}
-                  {showEmailFormatError && <small>Enter a valid email address.</small>}
                 </label>
               </div>
 

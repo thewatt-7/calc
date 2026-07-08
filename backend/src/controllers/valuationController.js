@@ -25,7 +25,7 @@ export async function createValuationLead(req, res) {
             personalExpenses,
             oneTimeExpenses,
             name,
-            email,
+            email = "",
             valuation,
         } = req.body;
 
@@ -48,7 +48,6 @@ export async function createValuationLead(req, res) {
             personalExpenses,
             oneTimeExpenses,
             name,
-            email,
         };
         const missingFields = Object.entries(requiredValues)
             .filter(([, value]) => !hasValue(value))
@@ -96,6 +95,7 @@ export async function createValuationLead(req, res) {
 
         try {
             await appendValuationLeadToSheet(lead);
+            console.info(`Google Sheets append completed for valuation lead ${lead._id}`);
         } catch (error) {
             console.error("Failed to append valuation lead to Google Sheets", error);
         }
