@@ -8,6 +8,7 @@ const app = express();
 const getAllowedOrigins = () => [
     ...(process.env.ALLOWED_ORIGINS || "").split(","),
     process.env.CLIENT_URL,
+    "https://business-value-estimator.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ].filter(Boolean).map((origin) => origin.trim());

@@ -3,6 +3,10 @@ import { connectDB } from "../src/config/db.js";
 
 export default async function handler(req, res) {
     try {
+        if (req.method === "OPTIONS") {
+            return app(req, res);
+        }
+
         await connectDB();
         return app(req, res);
     } catch (error) {
