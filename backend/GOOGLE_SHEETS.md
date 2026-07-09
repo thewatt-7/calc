@@ -1,6 +1,6 @@
 # Google Sheets Lead Capture
 
-The backend appends valuation leads directly to Google Sheets with the official Google Sheets API. There is no Apps
+The backend appends valuation leads directly to Google Sheets with the official Google Sheets API. There is no Apps.
 Script webhook in this setup.
 
 ## 1. Create The Sheet
