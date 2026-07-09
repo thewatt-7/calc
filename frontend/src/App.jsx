@@ -464,7 +464,24 @@ export default function App() {
                 </button>
               </div>
               {saveStatus === 'saving' && (
-                <p className="form-status">Saving your estimate and preparing your valuation range. This usually takes a few seconds.</p>
+                <div className="loading-estimate" aria-live="polite" role="status">
+                  <div className="loading-calculator" aria-hidden="true">
+                    <span className="calculator-screen" />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="loading-copy">
+                    <strong>Calculating your estimate</strong>
+                    <p>Reviewing the financials, add-backs, and valuation range.</p>
+                    <div className="loading-track" aria-hidden="true">
+                      <span />
+                    </div>
+                  </div>
+                </div>
               )}
             </form>
 

@@ -83,6 +83,53 @@ a {
   }
 }
 
+@keyframes calculatorShake {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+
+  20% {
+    transform: rotate(-3deg) translateY(-1px);
+  }
+
+  40% {
+    transform: rotate(3deg) translateY(0);
+  }
+
+  60% {
+    transform: rotate(-2deg) translateY(1px);
+  }
+
+  80% {
+    transform: rotate(2deg) translateY(0);
+  }
+}
+
+@keyframes screenFill {
+  0% {
+    transform: translateX(-90%);
+  }
+
+  100% {
+    transform: translateX(90%);
+  }
+}
+
+@keyframes progressFill {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  55% {
+    transform: translateX(-18%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 .fu,
 .fu1,
 .fu2,
@@ -378,6 +425,98 @@ small {
   font-weight: 600;
 }
 
+.loading-estimate {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+  border: 1.5px solid var(--accent-border);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  padding: 14px;
+}
+
+.loading-calculator {
+  display: grid;
+  grid-template-columns: repeat(3, 8px);
+  grid-template-rows: 16px repeat(2, 8px);
+  flex: 0 0 auto;
+  gap: 5px;
+  width: 52px;
+  min-height: 62px;
+  border: 1.5px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 9px;
+  box-shadow: 0 10px 22px var(--shadow);
+  transform-origin: center bottom;
+  animation: calculatorShake 0.76s ease-in-out infinite;
+}
+
+.loading-calculator span {
+  border-radius: 3px;
+  background: var(--accent-border);
+}
+
+.loading-calculator .calculator-screen {
+  position: relative;
+  grid-column: 1 / -1;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--panel-soft);
+}
+
+.loading-calculator .calculator-screen::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  content: '';
+  opacity: 0.65;
+  transform: translateX(-90%);
+  animation: screenFill 1.15s ease-in-out infinite;
+}
+
+.loading-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.loading-copy strong {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.loading-copy p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.loading-track {
+  position: relative;
+  overflow: hidden;
+  height: 8px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: var(--panel);
+}
+
+.loading-track span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  transform: translateX(-100%);
+  animation: progressFill 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
 .form-actions {
   display: flex;
   align-items: center;
@@ -582,5 +721,9 @@ small {
   .form-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .loading-estimate {
+    align-items: flex-start;
   }
 }
