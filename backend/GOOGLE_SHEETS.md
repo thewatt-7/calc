@@ -10,7 +10,7 @@ Create a Google Sheet with a tab named `Leads`.
 Add this header row in row 1:
 
 ```text
-Submitted At,Lead ID,Business Name,Name,Industry,Annual Revenue,Net Income,Years In Business,Owner Involvement,Employees,Revenue Trend,Owns Real Estate,Owner Salary,Health Insurance,Retirement Contributions,Depreciation,Amortization,Interest Expense,Personal Expenses,One-Time Expenses,Valuation Low,Valuation High,Estimated Business Value,Final Multiple,Calculated SDE,Years Adjustment,Revenue Trend Adjustment,Owner Involvement Adjustment,Employees Adjustment
+Submitted At,Name,Business Name,Estimated Business Value,Valuation Low,Valuation High,Calculated SDE,Final Multiple,Industry,Annual Revenue,Net Income,Years In Business,Revenue Trend,Owner Involvement,Employees,Owns Real Estate,Owner Salary,Personal Expenses Paid By Business,One-Time / Non-Recurring Expenses,Health Insurance,Retirement Contributions,Depreciation,Amortization,Interest Expense,Lead ID,Years Adjustment,Revenue Trend Adjustment,Owner Involvement Adjustment,Employees Adjustment
 ```
 
 ## 2. Create Google Credentials

@@ -3,6 +3,7 @@ import { appendValuationLeadToSheet } from "../services/googleSheetsService.js";
 
 const toNumber = (value) => Number(value || 0);
 const hasValue = (value) => value !== undefined && value !== null && String(value).trim() !== "";
+const toOptionalNumber = (value) => (hasValue(value) ? Number(value) : null);
 
 export async function createValuationLead(req, res) {
     try {
@@ -39,14 +40,6 @@ export async function createValuationLead(req, res) {
             employees,
             revenueTrend,
             ownsRealEstate,
-            ownerSalary,
-            healthInsurance,
-            retirementContributions,
-            depreciation,
-            amortization,
-            interestExpense,
-            personalExpenses,
-            oneTimeExpenses,
             name,
         };
         const missingFields = Object.entries(requiredValues)
@@ -70,14 +63,14 @@ export async function createValuationLead(req, res) {
             employees: toNumber(employees),
             revenueTrend,
             ownsRealEstate,
-            ownerSalary: toNumber(ownerSalary),
-            healthInsurance: toNumber(healthInsurance),
-            retirementContributions: toNumber(retirementContributions),
-            depreciation: toNumber(depreciation),
-            amortization: toNumber(amortization),
-            interestExpense: toNumber(interestExpense),
-            personalExpenses: toNumber(personalExpenses),
-            oneTimeExpenses: toNumber(oneTimeExpenses),
+            ownerSalary: toOptionalNumber(ownerSalary),
+            healthInsurance: toOptionalNumber(healthInsurance),
+            retirementContributions: toOptionalNumber(retirementContributions),
+            depreciation: toOptionalNumber(depreciation),
+            amortization: toOptionalNumber(amortization),
+            interestExpense: toOptionalNumber(interestExpense),
+            personalExpenses: toOptionalNumber(personalExpenses),
+            oneTimeExpenses: toOptionalNumber(oneTimeExpenses),
             name,
             email,
             valuationLow: toNumber(valuation.low),

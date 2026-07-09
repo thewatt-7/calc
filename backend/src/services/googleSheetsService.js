@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 
 const toNumber = (value) => Number(value || 0);
+const toOptionalSheetValue = (value) => (value === undefined || value === null || value === "" ? "N/A" : value);
 
 let sheetsClient = null;
 
@@ -97,30 +98,30 @@ const centerAlignRow = async (sheets, rowNumber) => {
 
 const getSheetRow = (lead) => [
     formatSheetDate(lead.createdAt),
-    lead._id.toString(),
-    lead.businessName,
     lead.name,
+    lead.businessName,
+    lead.valuationMidpoint,
+    lead.valuationLow,
+    lead.valuationHigh,
+    lead.valuationSde,
+    lead.valuationMultiple,
     lead.businessType,
     lead.annualRevenue,
     lead.netIncome,
     lead.yearsOperating,
+    lead.revenueTrend,
     lead.ownerInvolvement,
     lead.employees,
-    lead.revenueTrend,
     lead.ownsRealEstate,
-    lead.ownerSalary,
-    lead.healthInsurance,
-    lead.retirementContributions,
-    lead.depreciation,
-    lead.amortization,
-    lead.interestExpense,
-    lead.personalExpenses,
-    lead.oneTimeExpenses,
-    lead.valuationLow,
-    lead.valuationHigh,
-    lead.valuationMidpoint,
-    lead.valuationMultiple,
-    lead.valuationSde,
+    toOptionalSheetValue(lead.ownerSalary),
+    toOptionalSheetValue(lead.personalExpenses),
+    toOptionalSheetValue(lead.oneTimeExpenses),
+    toOptionalSheetValue(lead.healthInsurance),
+    toOptionalSheetValue(lead.retirementContributions),
+    toOptionalSheetValue(lead.depreciation),
+    toOptionalSheetValue(lead.amortization),
+    toOptionalSheetValue(lead.interestExpense),
+    lead._id.toString(),
     toNumber(lead.valuationAdjustments?.years),
     toNumber(lead.valuationAdjustments?.revenueTrend),
     toNumber(lead.valuationAdjustments?.ownerInvolvement),

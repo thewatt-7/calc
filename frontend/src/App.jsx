@@ -34,7 +34,18 @@ const initialForm = {
   name: '',
 }
 
-const requiredFields = Object.keys(initialForm)
+const optionalAddBackFields = [
+  'ownerSalary',
+  'personalExpenses',
+  'oneTimeExpenses',
+  'healthInsurance',
+  'retirementContributions',
+  'depreciation',
+  'amortization',
+  'interestExpense',
+]
+
+const requiredFields = Object.keys(initialForm).filter((field) => !optionalAddBackFields.includes(field))
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -115,6 +126,7 @@ export default function App() {
   const [screen, setScreen] = useState('calculator')
   const [submitted, setSubmitted] = useState(false)
   const [saveStatus, setSaveStatus] = useState('idle')
+  const [advancedAddBacksOpen, setAdvancedAddBacksOpen] = useState(false)
   const [theme, setTheme] = useState(() => (
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   ))
@@ -238,6 +250,7 @@ export default function App() {
     setForm(initialForm)
     setSubmitted(false)
     setSaveStatus('idle')
+    setAdvancedAddBacksOpen(false)
   }
 
   return (
@@ -381,57 +394,65 @@ export default function App() {
 
                 <div className="form-section wide">
                   <p className="section-kicker">Step 3</p>
-                  <h2>Owner Add-Backs</h2>
+                  <h2>Common Add-Backs</h2>
                 </div>
 
                 <label>
-                  <span>Owner salary &amp; payroll taxes</span>
-                  <input min="0" name="ownerSalary" onChange={updateForm} placeholder="65000" required type="number" value={form.ownerSalary} />
-                  {showRequiredError('ownerSalary') && <small>Enter a value or 0 if this does not apply.</small>}
-                </label>
-
-                <label>
-                  <span>Health insurance</span>
-                  <input min="0" name="healthInsurance" onChange={updateForm} placeholder="12000" required type="number" value={form.healthInsurance} />
-                  {showRequiredError('healthInsurance') && <small>Enter a value or 0 if this does not apply.</small>}
-                </label>
-
-                <label>
-                  <span>Retirement contributions</span>
-                  <input min="0" name="retirementContributions" onChange={updateForm} placeholder="8000" required type="number" value={form.retirementContributions} />
-                  {showRequiredError('retirementContributions') && <small>Enter a value or 0 if this does not apply.</small>}
-                </label>
-
-                <label>
-                  <span>Depreciation</span>
-                  <input min="0" name="depreciation" onChange={updateForm} placeholder="10000" required type="number" value={form.depreciation} />
-                  {showRequiredError('depreciation') && <small>Enter a value or 0 if this does not apply.</small>}
-                </label>
-
-                <label>
-                  <span>Amortization</span>
-                  <input min="0" name="amortization" onChange={updateForm} placeholder="3000" required type="number" value={form.amortization} />
-                  {showRequiredError('amortization') && <small>Enter a value or 0 if this does not apply.</small>}
-                </label>
-
-                <label>
-                  <span>Interest expense</span>
-                  <input min="0" name="interestExpense" onChange={updateForm} placeholder="7000" required type="number" value={form.interestExpense} />
-                  {showRequiredError('interestExpense') && <small>Enter a value or 0 if this does not apply.</small>}
+                  <span>Owner salary</span>
+                  <input min="0" name="ownerSalary" onChange={updateForm} placeholder="65000" type="number" value={form.ownerSalary} />
                 </label>
 
                 <label>
                   <span>Personal expenses paid by business</span>
-                  <input min="0" name="personalExpenses" onChange={updateForm} placeholder="15000" required type="number" value={form.personalExpenses} />
-                  {showRequiredError('personalExpenses') && <small>Enter a value or 0 if this does not apply.</small>}
+                  <input min="0" name="personalExpenses" onChange={updateForm} placeholder="15000" type="number" value={form.personalExpenses} />
                 </label>
 
                 <label>
                   <span>One-time / non-recurring expenses</span>
-                  <input min="0" name="oneTimeExpenses" onChange={updateForm} placeholder="5000" required type="number" value={form.oneTimeExpenses} />
+                  <input min="0" name="oneTimeExpenses" onChange={updateForm} placeholder="5000" type="number" value={form.oneTimeExpenses} />
                   <small className="field-note">Examples: legal fees, equipment repairs, accounting fees, personal vehicle, cell phone, or travel.</small>
-                  {showRequiredError('oneTimeExpenses') && <small>Enter a value or 0 if this does not apply.</small>}
                 </label>
+
+                <div className="advanced-addbacks wide">
+                  <button
+                    aria-expanded={advancedAddBacksOpen}
+                    className="advanced-toggle"
+                    onClick={() => setAdvancedAddBacksOpen((current) => !current)}
+                    type="button"
+                  >
+                    <span>Advanced</span>
+                    <span className="toggle-icon" aria-hidden="true">{advancedAddBacksOpen ? '-' : '+'}</span>
+                  </button>
+
+                  {advancedAddBacksOpen && (
+                    <div className="advanced-grid">
+                      <label>
+                        <span>Health insurance</span>
+                        <input min="0" name="healthInsurance" onChange={updateForm} placeholder="12000" type="number" value={form.healthInsurance} />
+                      </label>
+
+                      <label>
+                        <span>Retirement contributions</span>
+                        <input min="0" name="retirementContributions" onChange={updateForm} placeholder="8000" type="number" value={form.retirementContributions} />
+                      </label>
+
+                      <label>
+                        <span>Depreciation</span>
+                        <input min="0" name="depreciation" onChange={updateForm} placeholder="10000" type="number" value={form.depreciation} />
+                      </label>
+
+                      <label>
+                        <span>Amortization</span>
+                        <input min="0" name="amortization" onChange={updateForm} placeholder="3000" type="number" value={form.amortization} />
+                      </label>
+
+                      <label>
+                        <span>Interest expense</span>
+                        <input min="0" name="interestExpense" onChange={updateForm} placeholder="7000" type="number" value={form.interestExpense} />
+                      </label>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-actions">

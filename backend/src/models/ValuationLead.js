@@ -1,5 +1,11 @@
 import mongoose from "mongoose";
 
+const optionalAddBackField = {
+    type: Number,
+    default: null,
+    min: 0,
+};
+
 const valuationLeadSchema = new mongoose.Schema({
     businessName: {
         type: String,
@@ -45,46 +51,14 @@ const valuationLeadSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    ownerSalary: {
-        type: Number,
-        required: true,
-        min: 0,
-    },
-    healthInsurance: {
-        type: Number,
-        required: true,
-        min: 0,
-    },
-    retirementContributions: {
-        type: Number,
-        required: true,
-        min: 0,
-    },
-    depreciation: {
-        type: Number,
-        required: true,
-        min: 0,
-    },
-    amortization: {
-        type: Number,
-        required: true,
-        min: 0,
-    },
-    interestExpense: {
-        type: Number,
-        required: true,
-        min: 0,
-    },
-    personalExpenses: {
-        type: Number,
-        required: true,
-        min: 0,
-    },
-    oneTimeExpenses: {
-        type: Number,
-        required: true,
-        min: 0,
-    },
+    ownerSalary: optionalAddBackField,
+    personalExpenses: optionalAddBackField,
+    oneTimeExpenses: optionalAddBackField,
+    healthInsurance: optionalAddBackField,
+    retirementContributions: optionalAddBackField,
+    depreciation: optionalAddBackField,
+    amortization: optionalAddBackField,
+    interestExpense: optionalAddBackField,
     name: {
         type: String,
         required: true,
