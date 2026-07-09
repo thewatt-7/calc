@@ -278,25 +278,27 @@ export default function App() {
 
             <form className="calculator-panel fu1" noValidate onSubmit={handleCalculate} ref={formRef}>
               <div className="form-grid">
+                <p className="required-note wide"><span>*</span> Required fields</p>
+
                 <div className="form-section wide">
                   <p className="section-kicker">Step 1</p>
                   <h2>Business Information</h2>
                 </div>
 
                 <label>
-                  <span>Business name</span>
+                  <span className="required-label">Business name</span>
                   <input name="businessName" onChange={updateForm} placeholder="Main Street Cafe" required type="text" value={form.businessName} />
                   {showRequiredError('businessName') && <small>Business name is required.</small>}
                 </label>
 
                 <label>
-                  <span>Your name</span>
+                  <span className="required-label">Your name</span>
                   <input name="name" onChange={updateForm} placeholder="Alex Smith" required type="text" value={form.name} />
                   {showRequiredError('name') && <small>Your name is required.</small>}
                 </label>
 
                 <label>
-                  <span>Industry</span>
+                  <span className="required-label">Industry</span>
                   <select name="businessType" required value={form.businessType} onChange={updateForm}>
                     {businessTypes.map((type) => (
                       <option key={type.value} value={type.value}>{type.label}</option>
@@ -305,7 +307,7 @@ export default function App() {
                 </label>
 
                 <label>
-                  <span>Years in business</span>
+                  <span className="required-label">Years in business</span>
                   <input
                     min="0"
                     name="yearsOperating"
@@ -319,7 +321,7 @@ export default function App() {
                 </label>
 
                 <label>
-                  <span>Owner involvement</span>
+                  <span className="required-label">Owner involvement</span>
                   <select name="ownerInvolvement" required value={form.ownerInvolvement} onChange={updateForm}>
                     <option value="full">Full-Time Owner</option>
                     <option value="part">Part-Time Owner</option>
@@ -328,7 +330,7 @@ export default function App() {
                 </label>
 
                 <label>
-                  <span>Number of employees</span>
+                  <span className="required-label">Number of employees</span>
                   <input
                     min="0"
                     name="employees"
@@ -342,7 +344,7 @@ export default function App() {
                 </label>
 
                 <label>
-                  <span>Revenue trend</span>
+                  <span className="required-label">Revenue trend</span>
                   <select name="revenueTrend" required value={form.revenueTrend} onChange={updateForm}>
                     <option value="growing">Growing</option>
                     <option value="stable">Stable</option>
@@ -351,7 +353,7 @@ export default function App() {
                 </label>
 
                 <label>
-                  <span>Owns real estate?</span>
+                  <span className="required-label">Owns real estate?</span>
                   <select name="ownsRealEstate" required value={form.ownsRealEstate} onChange={updateForm}>
                     <option value="no">No</option>
                     <option value="yes">Yes</option>
@@ -365,7 +367,7 @@ export default function App() {
                 </div>
 
                 <label>
-                  <span>Annual revenue</span>
+                  <span className="required-label">Annual revenue</span>
                   <input
                     min="0"
                     name="annualRevenue"
@@ -379,7 +381,7 @@ export default function App() {
                 </label>
 
                 <label>
-                  <span>Net income</span>
+                  <span className="required-label">Net income</span>
                   <input
                     name="netIncome"
                     onChange={updateForm}
