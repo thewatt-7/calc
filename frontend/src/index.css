@@ -540,6 +540,15 @@ small {
   transition: transform 0.18s, box-shadow 0.18s, background 0.18s, border-color 0.18s;
 }
 
+.primary-btn strong,
+.secondary-btn strong {
+  font-size: 13px;
+  letter-spacing: 0;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+
 .primary-btn {
   border: 0;
   background: var(--text);
@@ -655,19 +664,19 @@ small {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-width: 210px;
+  min-width: 260px;
 }
 
 .contact-actions .primary-btn {
   margin-top: 0;
 }
 
-.phone-display {
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  line-height: 1.3;
+.contact-actions .primary-btn,
+.contact-actions .secondary-btn {
+  flex-direction: column;
+  gap: 3px;
+  min-height: 62px;
+  padding: 10px 18px;
   text-align: center;
 }
 

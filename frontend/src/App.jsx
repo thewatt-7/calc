@@ -544,16 +544,16 @@ export default function App() {
               <div>
                 <p className="eyebrow">Ready for a real broker opinion?</p>
                 <h2>Ask for a professional estimate.</h2>
-                <p>
-                  Send this estimate to your friend and invite the business owner to schedule a conversation.
-                </p>
               </div>
               <div className="contact-actions">
                 <a className="primary-btn" href="mailto:Zach.jordan@fcbb.com?subject=Professional business valuation estimate">
-                  Email Broker
+                  <span>Click to email</span>
+                  <strong>Zach.jordan@fcbb.com</strong>
                 </a>
-                <a className="secondary-btn" href="tel:+17039671177">Call Broker</a>
-                <p className="phone-display">703-967-1177</p>
+                <a className="secondary-btn" href="tel:+17039671177">
+                  <span>Tap to call</span>
+                  <strong>703-967-1177</strong>
+                </a>
               </div>
             </div>
 
